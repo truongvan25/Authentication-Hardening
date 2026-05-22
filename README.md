@@ -29,14 +29,18 @@ Port 3000  ─── Vulnerable Target App (intentionally insecure)
 ```
 Auth-Hardening/
 ├── proxy/
-│   ├── index.js                 ← Entry point + /admin/reset endpoint
+│   ├── index.js                 ← Entry point + /admin/* endpoints
 │   ├── store.js                 ← In-memory state (counters, blacklist)
 │   ├── package.json
-│   └── middleware/
-│       ├── rateLimiter.js       ← IP-based sliding window (TC-01, TC-02, TC-05)
-│       ├── accountLock.js       ← Per-account failure counter (TC-04)
-│       ├── normalizeResp.js     ← Flag middleware (normalization inline trong index.js)
-│       └── logger.js            ← Ghi log ra console + attack.log
+│   ├── middleware/
+│   │   ├── rateLimiter.js       ← IP-based sliding window (TC-01, TC-02, TC-05)
+│   │   ├── accountLock.js       ← Per-account failure counter (TC-04)
+│   │   ├── normalizeResp.js     ← Flag middleware (normalization inline trong index.js)
+│   │   └── logger.js            ← Ghi log ra console + attack.log
+│   └── public/
+│       ├── index.html           ← Live Monitor dashboard
+│       ├── index.js             ← Dashboard logic (TC buttons, polling)
+│       └── index.css            ← Dashboard styles
 ├── target-app/
 │   ├── server.js                ← Backend cố ý có lỗ hổng
 │   ├── users.json               ← Database user test
@@ -45,7 +49,7 @@ Auth-Hardening/
 │   ├── brute_force.py           ← Demo TC-01
 │   ├── credential_stuff.py      ← Demo TC-02
 │   ├── enumerate.py             ← Demo TC-03
-│   └── timing_attack.py         ← Demo TC-06
+│   └── timing_attack.py         ← Demo TC-06 (CLI only)
 ├── attack.log                   ← Tạo tự động khi proxy chạy
 └── README.md
 ```
@@ -93,20 +97,38 @@ Kết quả mong đợi:
 
 > Từ đây, **mọi request** gửi đến `:4000` sẽ đi qua middleware rồi mới vào `:3000`.
 
+### Bước 3 — Mở Live Monitor Dashboard (Browser)
+
+Sau khi proxy đã chạy, mở trình duyệt và truy cập:
+
+```
+http://localhost:4000/dashboard
+```
+
+Dashboard gồm hai cột:
+- **Trái** — nút bấm cho từng Test Case (TC-01 đến TC-05), nút Reset, và output console
+- **Phải** — trạng thái proxy (IP bị block, account bị lock, fail count) và live log, tự refresh mỗi 2 giây
+
+> **Quan trọng:** Phải mở đúng `http://localhost:4000/dashboard`, **không** dùng VS Code Live Server hay bất kỳ port nào khác. Nếu mở qua Live Server (port 5500), các API call sẽ gửi sai địa chỉ và nhận 404.
+
 ---
 
 ## Reset state giữa các Test Case
 
 Proxy dùng **in-memory store** — state (IP blacklist, fail counters) tích lũy qua các TC. Nếu không reset, TC sau sẽ bị ảnh hưởng bởi state của TC trước (ví dụ IP đang bị lock từ TC-01 sẽ block luôn TC-02).
 
-**Reset bằng endpoint** (không cần restart proxy):
+**Cách 1 — Nhấn nút trong dashboard:**
+
+Nhấn nút **⟳ Reset All State** ở cột trái của dashboard.
+
+**Cách 2 — Curl:**
 ```bash
 curl -s -X POST http://localhost:4000/admin/reset
 ```
 
 Kết quả: `{"message":"State reset. All counters and blacklists cleared."}`
 
-> Chạy lệnh này **trước mỗi TC** (trừ TC-05 — xem hướng dẫn riêng bên dưới).
+> Reset **trước mỗi TC** (trừ TC-05 — phải chạy ngay sau TC-01, không reset giữa chừng).
 
 ---
 

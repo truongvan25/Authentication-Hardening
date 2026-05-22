@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Auth Hardening — Live Monitor</title>
+	<link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+	<header>
+		<div>
+			<h1><span id="dot"></span>Auth Hardening Middleware — Live Monitor</h1>
+			<div class="sub">CSN402 · proxy :4000 &nbsp;→&nbsp; backend :3000 &nbsp;|&nbsp; OWASP A07:2021</div>
+		</div>
+		<div id="ts">—</div>
+	</header>
+
+	<main>
+		<!-- ════ LEFT PANEL ════ -->
+		<div class="left">
+			<div class="panel-hdr">Attack Controls</div>
+
+			<div class="tc-list">
+				<button class="tc-btn" onclick="run(1)">
+					<div><span class="tc-id">TC-01</span>Brute Force</div>
+					<div class="tc-desc">Nhiều password → 1 account (admin)</div>
+				</button>
+				<button class="tc-btn" onclick="run(2)">
+					<div><span class="tc-id">TC-02</span>Credential Stuffing</div>
+					<div class="tc-desc">Breach DB replay — nhiều user, 1 IP</div>
+				</button>
+				<button class="tc-btn" onclick="run(3)">
+					<div><span class="tc-id">TC-03</span>Account Enumeration</div>
+					<div class="tc-desc">So sánh error message direct vs proxy</div>
+				</button>
+				<button class="tc-btn" onclick="run(4)">
+					<div><span class="tc-id">TC-04</span>Distributed Brute Force</div>
+					<div class="tc-desc">12 IP giả lập → 1 account → account lock</div>
+				</button>
+				<button class="tc-btn" onclick="run(5)">
+					<div><span class="tc-id">TC-05</span>Header Spoofing</div>
+					<div class="tc-desc">Bypass IP block bằng X-Forwarded-For</div>
+				</button>
+				<button class="tc-btn" disabled>
+					<div><span class="tc-id">TC-06</span>Timing Attack</div>
+					<div class="tc-cli">▸ python attack-scripts/timing_attack.py</div>
+				</button>
+			</div>
+
+			<div class="ctrl-row">
+				<button class="reset-btn" onclick="resetAll()">⟳&nbsp; Reset All State</button>
+			</div>
+
+			<div class="panel-hdr">Attack Output</div>
+			<div id="output"><span class="o-info">Nhấn một Test Case để bắt đầu...</span></div>
+		</div>
+
+		<!-- ════ RIGHT PANEL ════ -->
+		<div class="right">
+			<div class="panel-hdr">
+				Proxy State
+				<span style="color:#484f58;font-size:10px;margin-left:8px;">(auto-refresh 2s)</span>
+			</div>
+
+			<div class="stats-wrap">
+				<div class="stats-grid">
+					<div class="stat-box">
+						<h3>Blacklisted IPs</h3>
+						<div id="s-ips"><span class="tnone">none</span></div>
+					</div>
+					<div class="stat-box">
+						<h3>Locked Accounts</h3>
+						<div id="s-lks"><span class="tnone">none</span></div>
+					</div>
+					<div class="stat-box">
+						<h3>Fail Count / Account</h3>
+						<div id="s-fls"><span class="tnone">none</span></div>
+					</div>
+					<div class="stat-box">
+						<h3>Unique Usernames / IP</h3>
+						<div id="s-usr"><span class="tnone">none</span></div>
+					</div>
+				</div>
+			</div>
+
+			<div class="panel-hdr">Live Log — attack.log</div>
+			<div id="log-list">
+				<div class="log-empty">No attack events recorded yet.</div>
+			</div>
+		</div>
+	</main>
+
+	<script src="index.js">
+		
+	</script>
+</body>
+
+</html>
