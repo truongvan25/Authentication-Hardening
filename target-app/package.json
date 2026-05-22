@@ -1,0 +1,12 @@
+{
+  "name": "vulnerable-target-app",
+  "version": "1.0.0",
+  "description": "Intentionally vulnerable backend — for CSN402 demo only",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

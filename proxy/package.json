@@ -1,0 +1,13 @@
+{
+  "name": "auth-middleware-proxy",
+  "version": "1.0.0",
+  "description": "Authentication hardening reverse proxy — CSN402 Web Security Project",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "http-proxy-middleware": "^2.0.6"
+  }
+}
