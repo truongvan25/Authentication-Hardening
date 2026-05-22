@@ -1,5 +1,4 @@
 # Authentication Hardening Middleware Proxy
-**CSN402 — Web Security | Course Project**
 
 Reverse proxy đứng trước một backend có lỗ hổng, phát hiện và chặn ba loại tấn công:
 - **Brute Force** — nhiều password thử vào một tài khoản
