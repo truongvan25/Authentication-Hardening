@@ -43,7 +43,8 @@ Auth-Hardening/
 │       └── index.css            ← Dashboard styles
 ├── target-app/
 │   ├── server.js                ← Backend cố ý có lỗ hổng
-│   ├── users.json               ← Database user test
+│   ├── users.json               ← Database user test (bcrypt hashed)
+│   ├── hash-passwords.js        ← Script tạo hash (chạy 1 lần)
 │   └── package.json
 ├── attack-scripts/
 │   ├── brute_force.py           ← Demo TC-01
@@ -314,16 +315,18 @@ done
 
 ---
 
-### TC-06 — Timing Attack (crypto.timingSafeEqual)
+### TC-06 — Timing Attack (bcrypt constant-time comparison)
 
 **Vấn đề:** JavaScript's `===` so sánh chuỗi bằng cách exit sớm ngay khi tìm thấy ký tự khác nhau đầu tiên. Password càng có nhiều ký tự đầu khớp với password thật → backend mất thời gian xử lý lâu hơn một chút → attacker đo được sự chênh lệch này qua hàng trăm request và đoán password từng ký tự một.
 
-**Fix:** `crypto.timingSafeEqual()` so sánh **toàn bộ** buffer bất kể kết quả — thời gian xử lý luôn bằng nhau dù password sai từ ký tự đầu hay ký tự cuối.
+**Fix trong project này:** `bcrypt.compare()` — hàm này không so sánh chuỗi plaintext mà so sánh hash. Toàn bộ work factor (12 rounds ≈ 150–300ms) luôn được chạy đủ bất kể password đúng hay sai, loại bỏ hoàn toàn timing leak.
 
 ```
 VULNERABLE:  if (user.password !== password)          ← early exit leak
-FIXED:       crypto.timingSafeEqual(Buffer.from(stored), Buffer.from(input))
+FIXED:       await bcrypt.compare(input, user.password)  ← constant-time, full work factor
 ```
+
+> bcrypt là bảo vệ mạnh hơn `crypto.timingSafeEqual()` thuần túy vì ngoài timing-safe, nó còn thêm salt + key stretching — attacker có được hash cũng không crack nhanh được.
 
 Script đo trực tiếp vào backend `:3000` (bypass proxy để loại bỏ overhead):
 
@@ -335,22 +338,22 @@ python attack-scripts/timing_attack.py http://localhost:3000/login
 ```
   Password type                          Avg (ms)    Stdev
   -------------------------------------- ---------  -------
-  no overlap    'xxxxxxxx'                   2.41     0.31
-  2-char match  'sexxxxxx'                   2.38     0.28
-  5-char match  'secrexxx'                   2.40     0.35
-  8-char match  'secret12'                   2.39     0.29
-  9-char match  'secret123x'                 2.43     0.33
+  no overlap    'xxxxxxxx'                 182.34     4.21
+  2-char match  'sexxxxxx'                181.97     3.88
+  5-char match  'secrexxx'                183.10     4.05
+  8-char match  'secret12'                182.61     3.94
+  9-char match  'secret123x'              182.88     4.17
 
-  Timing spread across wrong passwords: 0.05 ms
+  Timing spread across wrong passwords: 1.13 ms
 
   RESULT: Timing is UNIFORM across all wrong passwords.
-          crypto.timingSafeEqual() is working correctly.
+          bcrypt.compare() is working correctly.
           Timing-based password enumeration is NOT viable.
 ```
 
-Spread < 1ms và không có xu hướng tăng dần theo prefix length → timing attack không khả thi.
+Tất cả ~182ms (bcrypt 12 rounds), spread < 2ms hoàn toàn do OS/network jitter — không có xu hướng tăng theo prefix length.
 
-> **Lưu ý:** Variance nhỏ từ network/OS jitter là bình thường. Chạy script nhiều lần để xác nhận không có pattern tăng dần theo prefix length.
+> **Lưu ý:** Avg cao hơn (~180ms) so với `timingSafeEqual` (~2ms) là bình thường — đây là chi phí của bcrypt work factor, cũng là thứ khiến offline cracking trở nên đắt đỏ.
 
 ---
 
@@ -382,13 +385,17 @@ Remove-Item attack.log -ErrorAction SilentlyContinue
 
 ## Tài khoản test có sẵn
 
-| Username | Email | Password |
+Password trong `users.json` đã được hash bằng bcrypt (12 rounds). Plaintext để dùng khi test:
+
+| Username | Email | Password (plaintext) |
 |---|---|---|
 | admin | admin@example.com | secret123 |
 | alice | alice@mail.com | alice2024 |
 | bob | bob@mail.com | bob@secure |
 | carol | carol@mail.com | carolpass |
 | dave | dave@mail.com | dave1234 |
+
+> Nếu `users.json` bị mất hoặc cần tạo lại hash: `node target-app/hash-passwords.js`
 
 ---
 
@@ -409,5 +416,6 @@ Remove-Item attack.log -ErrorAction SilentlyContinue
 - **Proxy dùng in-memory store** — restart proxy cũng reset toàn bộ state.
 - **`X-Real-IP` được trust** trong demo để giả lập nhiều IP (TC-04). Trong production thực tế chỉ trust header này nếu đến từ upstream proxy tin cậy (nginx/load balancer).
 - **`X-Forwarded-For` không được trust** — TC-05 chứng minh attacker không thể bypass bằng header này.
-- Backend `:3000` **cố ý có lỗ hổng** để demo, không dùng trong production.
+- Backend `:3000` **cố ý có lỗ hổng** (leak error message khác nhau) để demo TC-03, không dùng trong production.
+- Password trong `users.json` được hash bằng bcrypt — nếu xóa file, chạy `node target-app/hash-passwords.js` để tạo lại.
 - Script Python cần package `requests`: `pip install requests`

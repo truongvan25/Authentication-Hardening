@@ -1,7 +1,27 @@
 [
-  { "username": "admin", "email": "admin@example.com", "password": "secret123" },
-  { "username": "alice", "email": "alice@mail.com", "password": "alice2024" },
-  { "username": "bob",   "email": "bob@mail.com",   "password": "bob@secure" },
-  { "username": "carol", "email": "carol@mail.com", "password": "carolpass" },
-  { "username": "dave",  "email": "dave@mail.com",  "password": "dave1234"  }
+  {
+    "username": "admin",
+    "email": "admin@example.com",
+    "password": "$2b$12$9Htom4BZ4i3TTKWBqaCv9OZn8eNZ6y6DgK5OrH6P7Pnfel/y52aOu"
+  },
+  {
+    "username": "alice",
+    "email": "alice@mail.com",
+    "password": "$2b$12$v2Nnw8LnD8R7R9Hx5XaHme6W4HJ7mOQmCrxNBHEiZJi.Gikrsfd9W"
+  },
+  {
+    "username": "bob",
+    "email": "bob@mail.com",
+    "password": "$2b$12$LHQvBSKnISdG5RQsp5xUsuHTVkk0EQc3ZfVHS26Gy5CPipLA2R1.y"
+  },
+  {
+    "username": "carol",
+    "email": "carol@mail.com",
+    "password": "$2b$12$hTHEVIB/aND1i7YmvPjQVexWqvVafyc0/8alQGuTNxkTh127WHu/e"
+  },
+  {
+    "username": "dave",
+    "email": "dave@mail.com",
+    "password": "$2b$12$.sJeEvEtvOHSs6cMtERHl.1U0q8.AbOgxl2fCQ5AImDSJ4okUg5bS"
+  }
 ]
