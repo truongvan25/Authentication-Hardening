@@ -1,6 +1,8 @@
 const express = require('express');
 const bcrypt  = require('bcrypt');
-const users   = require('./users.json');
+
+const VULN = true;
+const users = require(VULN ? './users_plain.json' : './users.json');
 
 const app = express();
 app.use(express.json());
@@ -21,9 +23,12 @@ app.post('/login', async (req, res) => {
     return res.status(401).json({ error: 'User not found' });
   }
 
-  // bcrypt.compare is timing-safe by design — runs full work factor (12 rounds)
-  // regardless of whether the password is completely wrong or off by one character.
-  const match = await bcrypt.compare(password || '', user.password);
+  let match;
+  if (VULN) {
+      match = (password === user.password);  // === vulnerable
+  } else {
+      match = await bcrypt.compare(password || '', user.password);  // giữ nguyên
+  }
 
   if (!match) {
     // VULNERABILITY: reveals username exists but password is wrong (intentional for TC-03 demo)

@@ -7,7 +7,7 @@ import requests
 import time
 import sys
 
-TARGET  = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:4000/login"
+TARGET  = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:3000/login"
 ACCOUNT = "admin"
 
 PASSWORDS = [

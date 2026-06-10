@@ -13,7 +13,7 @@ Usage:
 import requests
 import sys
 
-TARGET  = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:4000/login"
+TARGET  = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:3000/login"
 ACCOUNT = "admin"
 IPS     = [f"10.0.0.{i}" for i in range(1, 13)]   # 12 simulated source IPs
 
